@@ -478,10 +478,9 @@ class MusicBot(discord.Client):
                     player.voice_client.channel.name, entry.title, entry.meta['author'].name)
                 player.skip()
             elif self.config.now_playing_mentions:
-                newmsg = '%s - your song `%s` is now playing in `%s`!' % (
-                    entry.meta['author'].mention, entry.title, player.voice_client.channel.name)
+                newmsg = '`%s` が再生されます... (@ `%s`)' % (entry.title, player.voice_client.channel.name)
             else:
-                newmsg = 'Now playing in `%s`: `%s` added by `%s`' % (
+                newmsg = '再生中 （`%s`）: `%s` by `%s`' % (
                     player.voice_client.channel.name, entry.title, entry.meta['author'].name)
 
             if self.server_specific_data[channel.guild]['last_np_msg']:
@@ -567,7 +566,7 @@ class MusicBot(discord.Client):
                 try:
                     await player.playlist.add_entry(song_url, channel=None, author=None)
                 except exceptions.ExtractionError as e:
-                    log.error("Error adding song from autoplaylist: {}".format(e))
+                    log.error("自動プレイリストに追加しているときに、エラーが発生しました: {}".format(e))
                     log.debug('', exc_info=True)
                     continue
 
@@ -734,7 +733,7 @@ class MusicBot(discord.Client):
 
 
     async def _scheck_ensure_env(self):
-        log.debug("Ensuring data folders exist")
+        log.debug("データフォルダーを確保します。")
         for guild in self.guilds:
             pathlib.Path('data/%s/' % guild.id).mkdir(exist_ok=True)
 
@@ -956,11 +955,11 @@ class MusicBot(discord.Client):
                 log.info('Not proceeding with checks in {} servers due to unavailability'.format(str(unavailable_servers))) 
 
         elif self.guilds:
-            log.warning("Owner could not be found on any guild (id: %s)\n" % self.config.owner_id)
+            log.warning("どのサーバーにも管理者が見つかりませんでした。 (ID: %s)\n" % self.config.owner_id)
 
-            log.info('Guild List:')
+            log.info('サーバー一覧:')
             for s in self.guilds:
-                ser = ('{} (unavailable)'.format(s.name) if s.unavailable else s.name)
+                ser = ('{} (利用不可)'.format(s.name) if s.unavailable else s.name)
                 log.info(' - ' + ser)
 
         else:
@@ -1081,7 +1080,7 @@ class MusicBot(discord.Client):
 
     async def cmd_resetplaylist(self, player, channel):
         """
-        Usage:
+        使用法:
             {command_prefix}resetplaylist
 
         自動プレイリストに追加されている項目をリセットします。
@@ -1091,7 +1090,7 @@ class MusicBot(discord.Client):
 
     async def cmd_help(self, message, channel, command=None):
         """
-        Usage:
+        使用法:
             {command_prefix}help [command]
 
         ヘルプを表示します。
@@ -1134,7 +1133,7 @@ class MusicBot(discord.Client):
 
     async def cmd_blacklist(self, message, user_mentions, option, something):
         """
-        Usage:
+        使用法:
             {command_prefix}blacklist [ + | - | add | remove ] @UserName [@UserName2 ...]
 
         ブラックリストからユーザーを追加したり、削除したりします。
@@ -1181,7 +1180,7 @@ class MusicBot(discord.Client):
 
     async def cmd_id(self, author, user_mentions):
         """
-        Usage:
+        使用法:
             {command_prefix}id [@user]
 
         自分 または 他のユーザー の内部IDを表示します。
@@ -1194,7 +1193,7 @@ class MusicBot(discord.Client):
 
     async def cmd_save(self, player, url=None):
         """
-        Usage:
+        使用法:
             {command_prefix}save [url]
 
         プレイリストに項目を保存します。何もURLが指定されなかった場合は、再生中の曲を保存します。
@@ -1216,7 +1215,7 @@ class MusicBot(discord.Client):
     @owner_only
     async def cmd_joinserver(self, message, server_link=None):
         """
-        Usage:
+        使用法:
             {command_prefix}joinserver invite_link
 
         ボットをサーバーへ追加するためのURLを表示します。
@@ -1230,7 +1229,7 @@ class MusicBot(discord.Client):
 
     async def cmd_karaoke(self, player, channel, author):
         """
-        Usage:
+        使用法:
             {command_prefix}karaoke
 
         カラオケモードを有効にします。これが有効になっている間は、限られたユーザーのみが項目をキューへ追加できます。
@@ -1262,17 +1261,15 @@ class MusicBot(discord.Client):
 
     async def cmd_play(self, message, player, channel, author, permissions, leftover_args, song_url):
         """
-        Usage:
-            {command_prefix}play song_link
-            {command_prefix}play text to search for
-            {command_prefix}play spotify_uri
+        使用法:
+            {command_prefix}play （動画のURL）
+            {command_prefix}play （検索キーワード）
+            {command_prefix}play （Spotify URI）
 
-        Adds the song to the playlist.  If a link is not provided, the first
-        result from a youtube search is added to the queue.
+        動画をキューへ追加します。キーワードが指定された場合、検索結果の一番最初に出てくるものが再生されます。
 
-        If enabled in the config, the bot will also support Spotify URIs, however
-        it will use the metadata (e.g song name and artist) to find a YouTube
-        equivalent of the song. Streaming from Spotify is not possible.
+        設定ファイル中で有効になっている場合、Spotify URIもサポートしますが、それはYouTubeから検索することに留まります。
+        Spotify の素晴らしい音質で直接ストリーミングすることはできません。
         """
 
         song_url = song_url.strip('<>')
@@ -1490,7 +1487,7 @@ class MusicBot(discord.Client):
 
                 if permissions.max_song_length and info.get('duration', 0) > permissions.max_song_length:
                     raise exceptions.PermissionsError(
-                        self.str.get('cmd-play-song-limit', "Song duration exceeds limit ({0} > {1})").format(info['duration'], permissions.max_song_length),
+                        self.str.get('cmd-play-song-limit', "動画が長すぎます。 ({0} > {1})").format(info['duration'], permissions.max_song_length),
                         expire_in=30
                     )
 
@@ -1506,7 +1503,7 @@ class MusicBot(discord.Client):
 
                     return await self.cmd_play(player, channel, author, permissions, leftover_args, e.use_url)
 
-                reply_text = self.str.get('cmd-play-song-reply', "Enqueued `%s` to be played. Position in queue: %s")
+                reply_text = self.str.get('cmd-play-song-reply', "`%s` をキューに追加しました。順番: %s")
                 btext = entry.title
 
 
@@ -1601,7 +1598,7 @@ class MusicBot(discord.Client):
         # TODO: actually calculate wait per song in the process function and return that too
 
         # This is technically inaccurate since bad songs are ignored but still take up time
-        log.info("Processed {}/{} songs in {} seconds at {:.2f}s/song, {:+.2g}/song from expected ({}s)".format(
+        log.info("{}/{} の項目を {} 秒 ({:.2f}曲毎秒) で処理しました。 {:+.2g}/song from expected ({}s)".format(
             songs_processed,
             num_songs,
             fixg(ttime),
@@ -1611,18 +1608,18 @@ class MusicBot(discord.Client):
         )
 
         if not songs_added:
-            basetext = self.str.get('cmd-play-playlist-maxduration', "No songs were added, all songs were over max duration (%ss)") % permissions.max_song_length
+            basetext = self.str.get('cmd-play-playlist-maxduration', "何も追加されませんでした。すべての項目が長すぎます。 (%ss)") % permissions.max_song_length
             if skipped:
-                basetext += self.str.get('cmd-play-playlist-skipped', "\nAdditionally, the current song was skipped for being too long.")
+                basetext += self.str.get('cmd-play-playlist-skipped', "\n更に、次の項目も長過ぎたためスキップされました。これはひどい。")
 
             raise exceptions.CommandError(basetext, expire_in=30)
 
-        return Response(self.str.get('cmd-play-playlist-reply-secs', "Enqueued {0} songs to be played in {1} seconds").format(
+        return Response(self.str.get('cmd-play-playlist-reply-secs', "{0} 個の項目が追加されました。（{1}秒後に再生されます）").format(
             songs_added, fixg(ttime, 1)), delete_after=30)
 
     async def cmd_stream(self, player, channel, author, permissions, song_url):
         """
-        Usage:
+        使用法:
             {command_prefix}stream song_link
 
         Enqueue a media stream.
@@ -1635,22 +1632,22 @@ class MusicBot(discord.Client):
 
         if permissions.max_songs and player.playlist.count_for_user(author) >= permissions.max_songs:
             raise exceptions.PermissionsError(
-                self.str.get('cmd-stream-limit', "You have reached your enqueued song limit ({0})").format(permissions.max_songs), expire_in=30
+                self.str.get('cmd-stream-limit', "これ以上項目を追加できません。 ({0})").format(permissions.max_songs), expire_in=30
             )
 
         if player.karaoke_mode and not permissions.bypass_karaoke_mode:
             raise exceptions.PermissionsError(
-                self.str.get('karaoke-enabled', "Karaoke mode is enabled, please try again when its disabled!"), expire_in=30
+                self.str.get('karaoke-enabled', "カラオケモードが有効になっています。これを無効化してから試してください。"), expire_in=30
             )
 
         await self.send_typing(channel)
         await player.playlist.add_stream_entry(song_url, channel=channel, author=author)
 
-        return Response(self.str.get('cmd-stream-success', "Streaming."), delete_after=6)
+        return Response(self.str.get('cmd-stream-success', "ストリーミングしています。"), delete_after=6)
 
     async def cmd_search(self, message, player, channel, author, permissions, leftover_args):
         """
-        Usage:
+        使用法:
             {command_prefix}search [サービス] [件数] 検索キーワード
 
         動画共有サービス等から検索して、追加できます。
@@ -1680,7 +1677,7 @@ class MusicBot(discord.Client):
             if not leftover_args:
                 # noinspection PyUnresolvedReferences
                 raise exceptions.CommandError(
-                    self.str.get('cmd-search-noquery', "Please specify a search query.\n%s") % dedent(
+                    self.str.get('cmd-search-noquery', "検索キーワードを指定してください。\n%s") % dedent(
                         self.cmd_search.__doc__.format(command_prefix=self.config.command_prefix)),
                     expire_in=60
                 )
@@ -1762,7 +1759,7 @@ class MusicBot(discord.Client):
             if str(reaction.emoji) == '\u2705':  # check
                 await self.safe_delete_message(result_message)
                 await self.cmd_play(message, player, channel, author, permissions, [], e['webpage_url'])
-                return Response(self.str.get('cmd-search-accept', "Alright, coming right up!"), delete_after=30)
+                return Response(self.str.get('cmd-search-accept', "分かりました。もうすぐ再生されます。"), delete_after=30)
             elif str(reaction.emoji) == '\U0001F6AB':  # cross
                 await self.safe_delete_message(result_message)
                 continue
@@ -1774,7 +1771,7 @@ class MusicBot(discord.Client):
 
     async def cmd_np(self, player, channel, guild, message):
         """
-        Usage:
+        使用法:
             {command_prefix}np
 
         Displays the current song in chat.
@@ -1840,14 +1837,14 @@ class MusicBot(discord.Client):
 
     async def cmd_summon(self, channel, guild, author, voice_channel):
         """
-        Usage:
+        使用法:
             {command_prefix}summon
 
         Call the bot to the summoner's voice channel.
         """
 
         if not author.voice:
-            raise exceptions.CommandError(self.str.get('cmd-summon-novc', 'You are not connected to voice. Try joining a voice channel!'))
+            raise exceptions.CommandError(self.str.get('cmd-summon-novc', '音声チャンネルに参加していません。`.summon` を使用して、参加させてください。'))
 
         voice_client = self.voice_client_in(guild)
         if voice_client and guild == author.voice.channel.guild:
@@ -1857,16 +1854,16 @@ class MusicBot(discord.Client):
             chperms = author.voice.channel.permissions_for(guild.me)
 
             if not chperms.connect:
-                log.warning("Cannot join channel '{0}', no permission.".format(author.voice.channel.name))
+                log.warning("'{0}'に接続できません。参加する権限がありません。".format(author.voice.channel.name))
                 raise exceptions.CommandError(
-                    self.str.get('cmd-summon-noperms-connect', "Cannot join channel `{0}`, no permission to connect.").format(author.voice.channel.name),
+                    self.str.get('cmd-summon-noperms-connect', "'{0}'に接続できません。参加する権限がありません。").format(author.voice.channel.name),
                     expire_in=25
                 )
 
             elif not chperms.speak:
-                log.warning("Cannot join channel '{0}', no permission to speak.".format(author.voice.channel.name))
+                log.warning("'{0}'に接続できません。音声を発信する権限がありません。".format(author.voice.channel.name))
                 raise exceptions.CommandError(
-                    self.str.get('cmd-summon-noperms-speak', "Cannot join channel `{0}`, no permission to speak.").format(author.voice.channel.name),
+                    self.str.get('cmd-summon-noperms-speak', "'{0}'に接続できません。音声を発信する権限がありません。").format(author.voice.channel.name),
                     expire_in=25
                 )
 
@@ -1880,11 +1877,11 @@ class MusicBot(discord.Client):
 
         log.info("Joining {0.guild.name}/{0.name}".format(author.voice.channel))
 
-        return Response(self.str.get('cmd-summon-reply', 'Connected to `{0.name}`').format(author.voice.channel))
+        return Response(self.str.get('cmd-summon-reply', '`{0.name}` へ接続しました。').format(author.voice.channel))
 
     async def cmd_pause(self, player):
         """
-        Usage:
+        使用法:
             {command_prefix}pause
 
         Pauses playback of the current song.
@@ -1892,14 +1889,14 @@ class MusicBot(discord.Client):
 
         if player.is_playing:
             player.pause()
-            return Response(self.str.get('cmd-pause-reply', 'Paused music in `{0.name}`').format(player.voice_client.channel))
+            return Response(self.str.get('cmd-pause-reply', '`{0.name}` で再生されていた曲を一時停止しました。').format(player.voice_client.channel))
 
         else:
-            raise exceptions.CommandError(self.str.get('cmd-pause-none', 'Player is not playing.'), expire_in=30)
+            raise exceptions.CommandError(self.str.get('cmd-pause-none', '何も再生していません。'), expire_in=30)
 
     async def cmd_resume(self, player):
         """
-        Usage:
+        使用法:
             {command_prefix}resume
 
         Resumes playback of a paused song.
@@ -1907,14 +1904,14 @@ class MusicBot(discord.Client):
 
         if player.is_paused:
             player.resume()
-            return Response(self.str.get('cmd-resume-reply', 'Resumed music in `{0.name}`').format(player.voice_client.channel), delete_after=15)
+            return Response(self.str.get('cmd-resume-reply', '`{0.name}` で一時停止されていた曲をリジュームしました。').format(player.voice_client.channel), delete_after=15)
 
         else:
-            raise exceptions.CommandError(self.str.get('cmd-resume-none', 'Player is not paused.'), expire_in=30)
+            raise exceptions.CommandError(self.str.get('cmd-resume-none', '一時停止していません。'), expire_in=30)
 
     async def cmd_shuffle(self, channel, player):
         """
-        Usage:
+        使用法:
             {command_prefix}shuffle
 
         Shuffles the server's queue.
@@ -1934,29 +1931,29 @@ class MusicBot(discord.Client):
             await asyncio.sleep(0.6)
 
         await self.safe_delete_message(hand, quiet=True)
-        return Response(self.str.get('cmd-shuffle-reply', "Shuffled `{0}`'s queue.").format(player.voice_client.channel.guild), delete_after=15)
+        return Response(self.str.get('cmd-shuffle-reply', "`{0}` のキューをシャッフルしました。").format(player.voice_client.channel.guild), delete_after=15)
 
     async def cmd_clear(self, player, author):
         """
-        Usage:
+        使用法:
             {command_prefix}clear
 
         Clears the playlist.
         """
 
         player.playlist.clear()
-        return Response(self.str.get('cmd-clear-reply', "Cleared `{0}`'s queue").format(player.voice_client.channel.guild), delete_after=20)
+        return Response(self.str.get('cmd-clear-reply', "`{0}` のキューを綺麗さっぱり消しました。").format(player.voice_client.channel.guild), delete_after=20)
 
     async def cmd_remove(self, user_mentions, message, author, permissions, channel, player, index=None):
         """
-        Usage:
+        使用法:
             {command_prefix}remove [# in queue]
 
         Removes queued songs. If a number is specified, removes that song in the queue, otherwise removes the most recently queued song.
         """
 
         if not player.playlist.entries:
-            raise exceptions.CommandError(self.str.get('cmd-remove-none', "There's nothing to remove!"), expire_in=20)
+            raise exceptions.CommandError(self.str.get('cmd-remove-none', "消すものが何もありません。"), expire_in=20)
 
         if user_mentions:
             for user in user_mentions:
@@ -1968,13 +1965,13 @@ class MusicBot(discord.Client):
                         entry_text = '%s ' % len(entry_indexes) + 'item'
                         if len(entry_indexes) > 1:
                             entry_text += 's'
-                        return Response(self.str.get('cmd-remove-reply', "Removed `{0}` added by `{1}`").format(entry_text, user.name).strip())
+                        return Response(self.str.get('cmd-remove-reply', "`{0}` （by `{1}`） を削除しました。").format(entry_text, user.name).strip())
 
                     except ValueError:
-                        raise exceptions.CommandError(self.str.get('cmd-remove-missing', "Nothing found in the queue from user `%s`") % user.name, expire_in=20)
+                        raise exceptions.CommandError(self.str.get('cmd-remove-missing', "`%s` によって追加された項目はありません。") % user.name, expire_in=20)
 
                 raise exceptions.PermissionsError(
-                    self.str.get('cmd-remove-noperms', "You do not have the valid permissions to remove that entry from the queue, make sure you're the one who queued it or have instant skip permissions"), expire_in=20)
+                    self.str.get('cmd-remove-noperms', "キューからその項目を削除できません。それを追加した本人か、または権限を持っているユーザーのみが削除できます。"), expire_in=20)
 
         if not index:
             index = len(player.playlist.entries)
@@ -1982,48 +1979,48 @@ class MusicBot(discord.Client):
         try:
             index = int(index)
         except (TypeError, ValueError):
-            raise exceptions.CommandError(self.str.get('cmd-remove-invalid', "Invalid number. Use {}queue to find queue positions.").format(self.config.command_prefix), expire_in=20)
+            raise exceptions.CommandError(self.str.get('cmd-remove-invalid', "無効な数字です。 {}queue を使用して、指定するべき数字を確認してください。").format(self.config.command_prefix), expire_in=20)
 
         if index > len(player.playlist.entries):
-            raise exceptions.CommandError(self.str.get('cmd-remove-invalid', "Invalid number. Use {}queue to find queue positions.").format(self.config.command_prefix), expire_in=20)
+            raise exceptions.CommandError(self.str.get('cmd-remove-invalid', "無効な数字です。 {}queue を使用して、指定するべき数字を確認してください。").format(self.config.command_prefix), expire_in=20)
 
         if permissions.remove or author == player.playlist.get_entry_at_index(index - 1).meta.get('author', None):
             entry = player.playlist.delete_entry_at_index((index - 1))
             await self._manual_delete_check(message)
             if entry.meta.get('channel', False) and entry.meta.get('author', False):
-                return Response(self.str.get('cmd-remove-reply-author', "Removed entry `{0}` added by `{1}`").format(entry.title, entry.meta['author'].name).strip())
+                return Response(self.str.get('cmd-remove-reply-author', "`{0}` （by `{1}`） を削除しました。").format(entry.title, entry.meta['author'].name).strip())
             else:
-                return Response(self.str.get('cmd-remove-reply-noauthor', "Removed entry `{0}`").format(entry.title).strip())
+                return Response(self.str.get('cmd-remove-reply-noauthor', "`{0}` を削除しました。").format(entry.title).strip())
         else:
             raise exceptions.PermissionsError(
-                self.str.get('cmd-remove-noperms', "You do not have the valid permissions to remove that entry from the queue, make sure you're the one who queued it or have instant skip permissions"), expire_in=20
+                self.str.get('cmd-remove-noperms', "キューからその項目を削除できません。それを追加した本人か、または権限を持っているユーザーのみが削除できます。"), expire_in=20
             )
 
     async def cmd_skip(self, player, channel, author, message, permissions, voice_channel, param=''):
         """
-        Usage:
+        使用法:
             {command_prefix}skip [force/f]
 
-        Skips the current song when enough votes are cast.
-        Owners and those with the instaskip permission can add 'force' or 'f' after the command to force skip.
+        再生中の曲をスキップします。
+        権限を持っている一部のユーザーか、管理者のみが強制的にスキップさせることができます。
         """
 
         if player.is_stopped:
-            raise exceptions.CommandError(self.str.get('cmd-skip-none', "Can't skip! The player is not playing!"), expire_in=20)
+            raise exceptions.CommandError(self.str.get('cmd-skip-none', "スキップできません。何も再生していません。"), expire_in=20)
 
         if not player.current_entry:
             if player.playlist.peek():
                 if player.playlist.peek()._is_downloading:
-                    return Response(self.str.get('cmd-skip-dl', "The next song (`%s`) is downloading, please wait.") % player.playlist.peek().title)
+                    return Response(self.str.get('cmd-skip-dl', "次の項目 (`%s`) はダウンロード中です。しばらくお待ちください。") % player.playlist.peek().title)
 
                 elif player.playlist.peek().is_downloaded:
-                    print("The next song will be played shortly.  Please wait.")
+                    print("次の曲はもうすぐ再生されます。しばらくお待ちください。")
                 else:
-                    print("Something odd is happening.  "
-                          "You might want to restart the bot if it doesn't start working.")
+                    print("通常より処理に時間がかかっています。"
+                          "しばらく待っても改善しない場合、ボットを再起動させてください。")
             else:
-                print("Something strange is happening.  "
-                      "You might want to restart the bot if it doesn't start working.")
+                print("何か問題が発生しました。"
+                      "しばらく待っても改善しない場合、ボットを再起動させてください。")
         
         current_entry = player.current_entry
 
@@ -2077,14 +2074,14 @@ class MusicBot(discord.Client):
 
     async def cmd_volume(self, message, player, new_volume=None):
         """
-        Usage:
+        使用法:
             {command_prefix}volume (+/-)[値]
 
         1 から 100 の間で音量を指定できます。また、**+**や**-**を指定することで、現在の値から
         """
 
         if not new_volume:
-            return Response(self.str.get('cmd-volume-current', 'Current volume: `%s%%`') % int(player.volume * 100), reply=True, delete_after=20)
+            return Response(self.str.get('cmd-volume-current', '現在の音量: `%s%%`') % int(player.volume * 100), reply=True, delete_after=20)
 
         relative = False
         if new_volume[0] in '+-':
@@ -2094,7 +2091,7 @@ class MusicBot(discord.Client):
             new_volume = int(new_volume)
 
         except ValueError:
-            raise exceptions.CommandError(self.str.get('cmd-volume-invalid', '`{0}` is not a valid number').format(new_volume), expire_in=20)
+            raise exceptions.CommandError(self.str.get('cmd-volume-invalid', '`{0}` は正しい数字ではありません。').format(new_volume), expire_in=20)
 
         vol_change = None
         if relative:
@@ -2106,21 +2103,21 @@ class MusicBot(discord.Client):
         if 0 < new_volume <= 100:
             player.volume = new_volume / 100.0
 
-            return Response(self.str.get('cmd-volume-reply', 'Updated volume from **%d** to **%d**') % (old_volume, new_volume), reply=True, delete_after=20)
+            return Response(self.str.get('cmd-volume-reply', '音量を **%d** から **%d** へ変更しました。') % (old_volume, new_volume), reply=True, delete_after=20)
 
         else:
             if relative:
                 raise exceptions.CommandError(
-                    self.str.get('cmd-volume-unreasonable-relative', 'Unreasonable volume change provided: {}{:+} -> {}%.  Provide a change between {} and {:+}.').format(
+                    self.str.get('cmd-volume-unreasonable-relative', 'ピピッ... あり得ない音量の変化を観測しました。: {}{:+} -> {}% {} から {:+} の間で指定してください。').format(
                         old_volume, vol_change, old_volume + vol_change, 1 - old_volume, 100 - old_volume), expire_in=20)
             else:
                 raise exceptions.CommandError(
-                    self.str.get('cmd-volume-unreasonable-absolute', 'Unreasonable volume provided: {}%. Provide a value between 1 and 100.').format(new_volume), expire_in=20)
+                    self.str.get('cmd-volume-unreasonable-absolute', 'ピピッ... あり得ない音量の変化を観測しました: {}% 1から100の間で指定してください。').format(new_volume), expire_in=20)
 
     @owner_only
     async def cmd_option(self, player, option, value):
         """
-        Usage:
+        使用法:
             {command_prefix}option [オプション名] [on/y/enabled/off/n/disabled]
 
         再起動せずに設定を変更できます。再起動するまでは変更が保持されますが、もしした場合は設定ファイルに上書きされます。
@@ -2169,10 +2166,10 @@ class MusicBot(discord.Client):
 
     async def cmd_queue(self, channel, player):
         """
-        Usage:
+        使用法:
             {command_prefix}queue
 
-        Prints the current song queue.
+        キューを表示します。
         """
 
         lines = []
@@ -2219,10 +2216,10 @@ class MusicBot(discord.Client):
 
     async def cmd_clean(self, message, channel, guild, author, search_range=50):
         """
-        Usage:
-            {command_prefix}clean [range]
+        使用法:
+            {command_prefix}clean [遡る件数]
 
-        Removes up to [range] messages the bot has posted in chat. Default: 50, Max: 1000
+        ボットが送信したメッセージを削除します。
         """
 
         try:
@@ -2253,10 +2250,10 @@ class MusicBot(discord.Client):
 
     async def cmd_pldump(self, channel, author, song_url):
         """
-        Usage:
-            {command_prefix}pldump url
+        使用法:
+            {command_prefix}pldump URL
 
-        Dumps the individual urls of a playlist
+        指定されたURLのプレイリストをダンプします。
         """
 
         try:
@@ -2298,10 +2295,10 @@ class MusicBot(discord.Client):
 
     async def cmd_listids(self, guild, author, leftover_args, cat='all'):
         """
-        Usage:
-            {command_prefix}listids [categories]
+        使用法:
+            {command_prefix}listids [カテゴリー]
 
-        Lists the ids for various things.  Categories are:
+        様々なIDを表示します。カテゴリーには次のようなものが指定できます:
            all, users, roles, channels
         """
 
@@ -2356,7 +2353,7 @@ class MusicBot(discord.Client):
 
     async def cmd_perms(self, author, user_mentions, channel, guild, permissions):
         """
-        Usage:
+        使用法:
             {command_prefix}perms [@user]
 
         権限の一覧を表示します。
@@ -2381,7 +2378,7 @@ class MusicBot(discord.Client):
     @owner_only
     async def cmd_setname(self, leftover_args, name):
         """
-        Usage:
+        使用法:
             {command_prefix}setname (名前)
 
         ボットのユーザー名を変更します。
@@ -2405,7 +2402,7 @@ class MusicBot(discord.Client):
 
     async def cmd_setnick(self, guild, channel, leftover_args, nick):
         """
-        Usage:
+        使用法:
             {command_prefix}setnick nick
 
         ボットのニックネームを変更します。
@@ -2426,7 +2423,7 @@ class MusicBot(discord.Client):
     @owner_only
     async def cmd_setavatar(self, message, url=None):
         """
-        Usage:
+        使用法:
             {command_prefix}setavatar [url]
 
         ボットのアイコンを変更します。
@@ -2453,17 +2450,17 @@ class MusicBot(discord.Client):
 
     async def cmd_disconnect(self, guild):
         """
-        Usage:
+        使用法:
             {command_prefix}disconnect
         
-        Forces the bot leave the current voice channel.
+        ボットを接続している音声チャンネルから退出させます。
         """
         await self.disconnect_voice_client(guild)
         return Response("`{0.name}` から退出しました。".format(guild), delete_after=20)
 
     async def cmd_restart(self, channel):
         """
-        Usage:
+        使用法:
             {command_prefix}restart
         
         ボットを再起動します。前提ライブラリやボットのコードに変更が加えられた場合、正しく動作しない恐れがあります。
@@ -2479,10 +2476,10 @@ class MusicBot(discord.Client):
 
     async def cmd_shutdown(self, channel):
         """
-        Usage:
+        使用法:
             {command_prefix}shutdown
         
-        Disconnects from voice channels and closes the bot process.
+        ボットを音声チャンネルから切断させ、完全にシャットダウンさせます。
         """
         await self.safe_send_message(channel, "\N{WAVING HAND SIGN}")
         
@@ -2495,11 +2492,10 @@ class MusicBot(discord.Client):
 
     async def cmd_leaveserver(self, val, leftover_args):
         """
-        Usage:
-            {command_prefix}leaveserver <name/ID>
+        使用法:
+            {command_prefix}leaveserver <サーバー名 / ID>
 
-        Forces the bot to leave a server.
-        When providing names, names are case-sensitive.
+        指定したサーバーから退出します。名前を指定する場合、大文字小文字等が区別されます。
         """
         if leftover_args:
             val = ' '.join([val, *leftover_args])
