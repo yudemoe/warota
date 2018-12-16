@@ -81,16 +81,16 @@ class MusicBot(discord.Client):
         self.aiolocks = defaultdict(asyncio.Lock)
         self.downloader = downloader.Downloader(download_folder='audio_cache')
 
-        log.info('Starting MusicBot {}'.format(BOTVERSION))
+        log.info('warota discord bot バージョン{} を起動します。'.format(BOTVERSION))
 
         if not self.autoplaylist:
-            log.warning("Autoplaylist is empty, disabling.")
+            log.warning("自動プレイリストは空ですので、無効化します。")
             self.config.auto_playlist = False
         else:
-            log.info("Loaded autoplaylist with {} entries".format(len(self.autoplaylist)))
+            log.info("自動プレイリストを読み込みました。{}つの項目が登録されています。".format(len(self.autoplaylist)))
 
         if self.blacklist:
-            log.debug("Loaded blacklist with {} entries".format(len(self.blacklist)))
+            log.debug("ブラックリストを読み込みました。{}つの項目が登録されています。".format(len(self.blacklist)))
 
         # TODO: Do these properly
         ssd_defaults = {
@@ -112,7 +112,7 @@ class MusicBot(discord.Client):
                     log.warning('Spotify did not provide us with a token. Disabling.')
                     self.config._spotify = False
                 else:
-                    log.info('Authenticated with Spotify successfully using client ID and secret.')
+                    log.info('Spotify に接続しました。')
             except exceptions.SpotifyError as e:
                 log.warning('There was a problem initialising the connection to Spotify. Is your client ID and secret correct? Details: {0}. Continuing anyway in 5 seconds...'.format(e))
                 self.config._spotify = False
@@ -129,7 +129,7 @@ class MusicBot(discord.Client):
                 # noinspection PyCallingNonCallable
                 return await func(self, *args, **kwargs)
             else:
-                raise exceptions.PermissionsError("Only the owner can use this command.", expire_in=30)
+                raise exceptions.PermissionsError("管理者のみがそのコマンドを使用できます。", expire_in=30)
 
         return wrapper
 
@@ -142,7 +142,7 @@ class MusicBot(discord.Client):
                 # noinspection PyCallingNonCallable
                 return await func(self, *args, **kwargs)
             else:
-                raise exceptions.PermissionsError("Only dev users can use this command.", expire_in=30)
+                raise exceptions.PermissionsError("開発者のみがそのコマンドを使用できます。", expire_in=30)
 
         wrapper.dev_cmd = True
         return wrapper
@@ -265,20 +265,20 @@ class MusicBot(discord.Client):
 
         for guild, channel in channel_map.items():
             if guild in joined_servers:
-                log.info("Already joined a channel in \"{}\", skipping".format(guild.name))
+                log.info("すでに \"{}\" へ参加しています。スキップします。".format(guild.name))
                 continue
 
             if channel and isinstance(channel, discord.VoiceChannel):
-                log.info("Attempting to join {0.guild.name}/{0.name}".format(channel))
+                log.info("{0.guild.name}/{0.name} に接続しようとしています...".format(channel))
 
                 chperms = channel.permissions_for(guild.me)
 
                 if not chperms.connect:
-                    log.info("Cannot join channel \"{}\", no permission.".format(channel.name))
+                    log.info("\"{}\" に接続できません。参加する権限がありません。".format(channel.name))
                     continue
 
                 elif not chperms.speak:
-                    log.info("Will not join channel \"{}\", no permission to speak.".format(channel.name))
+                    log.info("\"{}\" に接続できません。音声を発信する権限がありません。".format(channel.name))
                     continue
 
                 try:
@@ -297,14 +297,14 @@ class MusicBot(discord.Client):
                             await self.on_player_finished_playing(player)
 
                 except Exception:
-                    log.debug("Error joining {0.guild.name}/{0.name}".format(channel), exc_info=True)
-                    log.error("Failed to join {0.guild.name}/{0.name}".format(channel))
+                    log.debug("{0.guild.name}/{0.name} へ参加できませんでした。何か問題が発生しました。".format(channel), exc_info=True)
+                    log.error("{0.guild.name}/{0.name} へ参加できませんでした。何か問題が発生しました。".format(channel))
 
             elif channel:
-                log.warning("Not joining {0.guild.name}/{0.name}, that's a text channel.".format(channel))
+                log.warning("{0.guild.name}/{0.name} へ参加できませんでした。テキストチャンネルです。".format(channel))
 
             else:
-                log.warning("Invalid channel thing: {}".format(channel))
+                log.warning("チャンネルの設定エラー: {}".format(channel))
 
     async def _wait_delete_msg(self, message, after):
         await asyncio.sleep(after)
@@ -326,11 +326,11 @@ class MusicBot(discord.Client):
             return True
         else:
             raise exceptions.PermissionsError(
-                "you cannot use this command when not in the voice channel (%s)" % vc.name, expire_in=30)
+                "`%s` は音声チャンネルへ参加しているときのみ、ご利用いただけます。" % vc.name, expire_in=30)
 
     async def _cache_app_info(self, *, update=False):
         if not self.cached_app_info and not update and self.user.bot:
-            log.debug("Caching app info")
+            log.debug("app の情報をキャッシュしています。")
             self.cached_app_info = await self.application_info()
 
         return self.cached_app_info
@@ -338,12 +338,12 @@ class MusicBot(discord.Client):
 
     async def remove_from_autoplaylist(self, song_url:str, *, ex:Exception=None, delete_from_ap=False):
         if song_url not in self.autoplaylist:
-            log.debug("URL \"{}\" not in autoplaylist, ignoring".format(song_url))
+            log.debug("URL \"{}\" はプレイリストではありません。無視します。".format(song_url))
             return
 
         async with self.aiolocks[_func_()]:
             self.autoplaylist.remove(song_url)
-            log.info("Removing unplayable song from session autoplaylist: %s" % song_url)
+            log.info("再生できない項目を削除しました: %s" % song_url)
 
             with open(self.config.auto_playlist_removed_file, 'a', encoding='utf8') as f:
                 f.write(
@@ -357,7 +357,7 @@ class MusicBot(discord.Client):
                 ))
 
             if delete_from_ap:
-                log.info("Updating autoplaylist")
+                log.info("自動プレイリストを更新中")
                 write_file(self.config.auto_playlist_file, self.autoplaylist)
 
     @ensure_appinfo
@@ -420,8 +420,8 @@ class MusicBot(discord.Client):
             if guild.id not in self.players:
                 if not create:
                     raise exceptions.CommandError(
-                        'The bot is not in a voice channel.  '
-                        'Use %ssummon to summon it to your voice channel.' % self.config.command_prefix)
+                        'ボットは音声チャンネルに参加していません。'
+                        '%ssummon を使用して参加させてください。' % self.config.command_prefix)
 
                 voice_client = await self.get_voice_client(channel)
 
@@ -536,19 +536,19 @@ class MusicBot(discord.Client):
                 try:
                     info = await self.downloader.extract_info(player.playlist.loop, song_url, download=False, process=False)
                 except downloader.youtube_dl.utils.DownloadError as e:
-                    if 'YouTube said:' in e.args[0]:
+                    if 'YouTube からのメッセージ:' in e.args[0]:
                         # url is bork, remove from list and put in removed list
-                        log.error("Error processing youtube url:\n{}".format(e.args[0]))
+                        log.error("無効なURL:\n{}".format(e.args[0]))
 
                     else:
                         # Probably an error from a different extractor, but I've only seen youtube's
-                        log.error("Error processing \"{url}\": {ex}".format(url=song_url, ex=e))
+                        log.error("無効なURL （\"{url}\"）: {ex}".format(url=song_url, ex=e))
 
                     await self.remove_from_autoplaylist(song_url, ex=e, delete_from_ap=self.config.remove_ap)
                     continue
 
                 except Exception as e:
-                    log.error("Error processing \"{url}\": {ex}".format(url=song_url, ex=e))
+                    log.error("無効なURL （\"{url}\"）: {ex}".format(url=song_url, ex=e))
                     log.exception()
 
                     self.autoplaylist.remove(song_url)
@@ -575,7 +575,7 @@ class MusicBot(discord.Client):
 
             if not self.autoplaylist:
                 # TODO: When I add playlist expansion, make sure that's not happening during this check
-                log.warning("No playable songs in the autoplaylist, disabling.")
+                log.warning("再生できる曲がプレイリストにありません。無視します。")
                 self.config.auto_playlist = False
 
         else: # Don't serialize for autoplaylist events
