@@ -109,12 +109,12 @@ class MusicBot(discord.Client):
             try:
                 self.spotify = Spotify(self.config.spotify_clientid, self.config.spotify_clientsecret, aiosession=self.aiosession, loop=self.loop)
                 if not self.spotify.token:
-                    log.warning('Spotify did not provide us with a token. Disabling.')
+                    log.warning('Spotify に接続できませんでした。')
                     self.config._spotify = False
                 else:
                     log.info('Spotify に接続しました。')
             except exceptions.SpotifyError as e:
-                log.warning('There was a problem initialising the connection to Spotify. Is your client ID and secret correct? Details: {0}. Continuing anyway in 5 seconds...'.format(e))
+                log.warning('Spotify に接続できませんでした。 詳細: {0} 5秒後に続行します。'.format(e))
                 self.config._spotify = False
                 time.sleep(5)  # make sure they see the problem
 
@@ -181,7 +181,7 @@ class MusicBot(discord.Client):
 
     def _setup_logging(self):
         if len(logging.getLogger(__package__).handlers) > 1:
-            log.debug("Skipping logger setup, already set up")
+            log.debug("ロガーのセットアップを飛ばします。すでに設定されています。")
             return
 
         shandler = logging.StreamHandler(stream=sys.stdout)
@@ -1127,10 +1127,10 @@ class MusicBot(discord.Client):
             await self.gen_cmd_list(message)
 
         desc = '```\n' + ', '.join(self.commands) + '\n```\n' + self.str.get(
-            'cmd-help-response', 'For information about a particular command, run `{}help [command]`\n'
-                                 'For further help, see https://just-some-bots.github.io/MusicBot/').format(prefix)
+            'cmd-help-response', '詳しくは https://yude.moe/bot をご覧ください。\n'
+                                 '`{}help (コマンド)` でコマンド毎の詳しい説明を表示します。').format(prefix)
         if not self.is_all:
-            desc += self.str.get('cmd-help-all', '\nOnly showing commands you can use, for a list of all commands, run `{}help all`').format(prefix)
+            desc += self.str.get('cmd-help-all', '\nあなたが使用できるコマンドのみ表示しています。すべてのコマンドを表示するには、`{}help all` を実行してください。').format(prefix)
 
         return Response(desc, reply=True, delete_after=60)
 
@@ -1144,16 +1144,16 @@ class MusicBot(discord.Client):
         """
 
         if not user_mentions:
-            raise exceptions.CommandError("No users listed.", expire_in=20)
+            raise exceptions.CommandError("誰も登録されていません。", expire_in=20)
 
         if option not in ['+', '-', 'add', 'remove']:
             raise exceptions.CommandError(
-                self.str.get('cmd-blacklist-invalid', 'Invalid option "{0}" specified, use +, -, add, or remove').format(option), expire_in=20
+                self.str.get('cmd-blacklist-invalid', '不正なオプション "{0}" が指定されました。+、 -、 add、remove のどれかを使用してください。').format(option), expire_in=20
             )
 
         for user in user_mentions.copy():
             if user.id == self.config.owner_id:
-                print("[Commands:Blacklist] The owner cannot be blacklisted.")
+                print("[Commands:Blacklist] 管理者をブラックリストへ追加することはできません。")
                 user_mentions.remove(user)
 
         old_len = len(self.blacklist)
@@ -1164,20 +1164,20 @@ class MusicBot(discord.Client):
             write_file(self.config.blacklist_file, self.blacklist)
 
             return Response(
-                self.str.get('cmd-blacklist-added', '{0} users have been added to the blacklist').format(len(self.blacklist) - old_len),
+                self.str.get('cmd-blacklist-added', '{0} 人のユーザーがブラックリストへ登録されています。').format(len(self.blacklist) - old_len),
                 reply=True, delete_after=10
             )
 
         else:
             if self.blacklist.isdisjoint(user.id for user in user_mentions):
-                return Response(self.str.get('cmd-blacklist-none', 'None of those users are in the blacklist.'), reply=True, delete_after=10)
+                return Response(self.str.get('cmd-blacklist-none', '誰も登録されていません。'), reply=True, delete_after=10)
 
             else:
                 self.blacklist.difference_update(user.id for user in user_mentions)
                 write_file(self.config.blacklist_file, self.blacklist)
 
                 return Response(
-                    self.str.get('cmd-blacklist-removed', '{0} users have been removed from the blacklist').format(old_len - len(self.blacklist)),
+                    self.str.get('cmd-blacklist-removed', '{0} 人のユーザーがブラックリストから削除されました。').format(old_len - len(self.blacklist)),
                     reply=True, delete_after=10
                 )
 
@@ -1189,10 +1189,10 @@ class MusicBot(discord.Client):
         Tells the user their id or the id of another user.
         """
         if not user_mentions:
-            return Response(self.str.get('cmd-id-self', 'Your ID is `{0}`').format(author.id), reply=True, delete_after=35)
+            return Response(self.str.get('cmd-id-self', 'あなたのIDは `{0}` です。').format(author.id), reply=True, delete_after=35)
         else:
             usr = user_mentions[0]
-            return Response(self.str.get('cmd-id-other', '**{0}**s ID is `{1}`').format(usr.name, usr.id), reply=True, delete_after=35)
+            return Response(self.str.get('cmd-id-other', '**{0}** のIDは `{1}` です。').format(usr.name, usr.id), reply=True, delete_after=35)
 
     async def cmd_save(self, player, url=None):
         """
