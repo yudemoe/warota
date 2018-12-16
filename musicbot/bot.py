@@ -285,7 +285,7 @@ class MusicBot(discord.Client):
                     player = await self.get_player(channel, create=True, deserialize=self.config.persistent_queue)
                     joined_servers.add(guild)
 
-                    log.info("Joined {0.guild.name}/{0.name}".format(channel))
+                    log.info("{0.guild.name}/{0.name} へ参加しました".format(channel))
 
                     if player.is_stopped:
                         player.play()
@@ -925,7 +925,7 @@ class MusicBot(discord.Client):
 
         ################################
 
-        log.info("接続数: {0}/{1}#{2}".format(
+        log.info("ボット アカウント: {0}/{1}#{2}".format(
             self.user.id,
             self.user.name,
             self.user.discriminator
@@ -933,7 +933,7 @@ class MusicBot(discord.Client):
 
         owner = self._get_owner(voice=True) or self._get_owner()
         if owner and self.guilds:
-            log.info("管理者:     {0}/{1}#{2}\n".format(
+            log.info("管理者 アカウント:     {0}/{1}#{2}\n".format(
                 owner.id,
                 owner.name,
                 owner.discriminator
@@ -986,7 +986,7 @@ class MusicBot(discord.Client):
             self.config.bound_channels.difference_update(invalids)
 
             if chlist:
-                log.info("テキストチャンネルを認識: ")
+                log.info("認識されているテキストチャンネル: ")
                 [log.info(' - {}/{}'.format(ch.guild.name.strip(), ch.name.strip())) for ch in chlist if ch]
             else:
                 print("どのテキストチャンネルにも反応しません。")

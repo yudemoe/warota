@@ -122,7 +122,7 @@ class PIP(object):
 # Setup initial loggers
 
 tmpfile = tempfile.TemporaryFile('w+', encoding='utf8')
-log = logging.getLogger('launcher')
+log = logging.getLogger('ランチャー')
 log.setLevel(logging.DEBUG)
 
 sh = logging.StreamHandler(stream=sys.stdout)
@@ -143,7 +143,7 @@ log.addHandler(tfh)
 
 def finalize_logging():
     if os.path.isfile("logs/musicbot.log"):
-        log.info("Moving old musicbot log")
+        log.info("古いログファイルを移動させています")
         try:
             if os.path.isfile("logs/musicbot.log.last"):
                 os.unlink("logs/musicbot.log.last")
@@ -180,14 +180,14 @@ def finalize_logging():
     dlog.addHandler(dlh)
 
 
-def bugger_off(msg="Press enter to continue . . .", code=1):
+def bugger_off(msg="Enter を押して続行 . . .", code=1):
     input(msg)
     sys.exit(code)
 
 
 # TODO: all of this
 def sanity_checks(optional=True):
-    log.info("Starting sanity checks")
+    log.info("基本的な動作の確認（サニティーチェック）を実行しています")
     ## Required
 
     # Make sure we're on Python 3.5+
@@ -205,7 +205,7 @@ def sanity_checks(optional=True):
     # For rewrite only
     req_check_deps()
 
-    log.info("Required checks passed.")
+    log.info("必要な確認が完了しました。")
 
     ## Optional
     if not optional:
@@ -214,11 +214,11 @@ def sanity_checks(optional=True):
     # Check disk usage
     opt_check_disk_space()
 
-    log.info("Optional checks passed.")
+    log.info("任意の確認が完了しました。")
 
 
 def req_ensure_py3():
-    log.info("Checking for Python 3.5+")
+    log.info("Python のバージョンを確認しています (3.5 以上が必要です)")
 
     if sys.version_info < (3, 5):
         log.warning("Python 3.5+ is required. This version is %s", sys.version.split()[0])
@@ -291,7 +291,7 @@ def req_ensure_encoding():
 
 
 def req_ensure_env():
-    log.info("Ensuring we're in the right environment")
+    log.info("正しい環境にセットアップされていることを確認しています")
 
     if os.environ.get('APP_ENV') != 'docker' and not os.path.isdir(b64decode('LmdpdA==').decode('utf-8')):
         log.critical(b64decode('Qm90IHdhc24ndCBpbnN0YWxsZWQgdXNpbmcgR2l0LiBSZWluc3RhbGwgdXNpbmcgaHR0cDovL2JpdC5seS9tdXNpY2JvdGRvY3Mu').decode('utf-8'))
@@ -310,8 +310,8 @@ def req_ensure_env():
     try:
         os.mkdir('musicbot-test-folder')
     except Exception:
-        log.critical("Current working directory does not seem to be writable")
-        log.critical("Please move the bot to a folder that is writable")
+        log.critical("ディレクトリへ書き込みできません")
+        log.critical("権限設定を修正してください")
         bugger_off()
     finally:
         rmtree('musicbot-test-folder', True)
@@ -328,7 +328,7 @@ def req_ensure_folders():
 
 def opt_check_disk_space(warnlimit_mb=200):
     if disk_usage('.').free < warnlimit_mb*1024*2:
-        log.warning("Less than %sMB of free space remains on this device" % warnlimit_mb)
+        log.warning("このコンピューターには残り %sMB の空きメモリしかありません。" % warnlimit_mb)
 
 
 #################################################
@@ -373,7 +373,7 @@ def main():
             m.run()
 
         except SyntaxError:
-            log.exception("Syntax error (this is a bug, not your fault)")
+            log.exception("構文エラー (これは殆どの場合バグです。)")
             break
 
         except ImportError:
@@ -427,11 +427,11 @@ def main():
 
         sleeptime = min(loops * 2, max_wait_time)
         if sleeptime:
-            log.info("Restarting in {} seconds...".format(loops*2))
+            log.info("{} 秒後に再起動します...".format(loops*2))
             time.sleep(sleeptime)
 
     print()
-    log.info("All done.")
+    log.info("完了 (｀･ω･´)ゞ")
 
 
 if __name__ == '__main__':
