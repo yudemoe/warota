@@ -969,8 +969,7 @@ class MusicBot(discord.Client):
                 log.warning(
                     "ボットをサーバーに参加させるには、こちらのリンクを開いてください。 \n"
                     "注意: Discord にログイン済みで、かつサーバーの管理権限を所持している \n"
-                    "必要があります。\n"
-                    "  " + await self.generate_invite_link()
+                    "必要があります。\n" + await self.generate_invite_link()
                 )
 
         print(flush=True)
@@ -1335,7 +1334,7 @@ class MusicBot(discord.Client):
                             await self.cmd_play(message, player, channel, author, permissions, leftover_args, song_url)
                         await self.safe_delete_message(procmesg)
                         return Response(self.str.get('cmd-play-spotify-playlist-queued', "Enqueued `{0}` with **{1}** songs.").format(parts[-1], len(res)))
-                    
+
                     else:
                         raise exceptions.CommandError(self.str.get('cmd-play-spotify-unsupported', 'That is not a supported Spotify URI.'), expire_in=30)
                 except exceptions.SpotifyError:
