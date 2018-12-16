@@ -46,7 +46,6 @@ load_opus_lib()
 
 log = logging.getLogger(__name__)
 
-
 class MusicBot(discord.Client):
     def __init__(self, config_file=None, perms_file=None):
         try:
@@ -604,7 +603,7 @@ class MusicBot(discord.Client):
             if self.user.bot:
                 activeplayers = sum(1 for p in self.players.values() if p.is_playing)
                 if activeplayers > 1:
-                    game = discord.Game(type=0, name="music on %s guilds" % activeplayers)
+                    game = discord.Game(type=2, name="music on %s guilds" % activeplayers)
                     entry = None
 
                 elif activeplayers == 1:
@@ -615,9 +614,9 @@ class MusicBot(discord.Client):
                 prefix = u'\u275A\u275A ' if is_paused else ''
 
                 name = u'{}{}'.format(prefix, entry.title)[:128]
-                game = discord.Game(type=0, name=name)
+                game = discord.Game(type=2, name=name)
         else:
-            game = discord.Game(type=0, name=self.config.status_message.strip()[:128])
+            game = discord.Game(type=2, name=self.config.status_message.strip()[:128])
 
         async with self.aiolocks[_func_()]:
             if game != self.last_status:
@@ -654,7 +653,6 @@ class MusicBot(discord.Client):
             m = await self.safe_send_message(channel, message, quiet=True)
 
         self.server_specific_data[guild]['last_np_msg'] = m
-
 
     async def serialize_queue(self, guild, *, dir=None):
         """
@@ -902,7 +900,6 @@ class MusicBot(discord.Client):
 
     async def on_resumed(self):
         log.info("\nDiscord へ再接続しました。\n")
-
     async def on_ready(self):
         dlogger = logging.getLogger('discord')
         for h in dlogger.handlers:
@@ -1055,7 +1052,6 @@ class MusicBot(discord.Client):
         print(flush=True)
 
         await self.update_now_playing_status()
-
         # maybe option to leave the ownerid blank and generate a random command for the owner to use
         # wait_for_message is pretty neato
 
