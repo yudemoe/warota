@@ -2,6 +2,7 @@
 *.pyc
 ~*/
 .vscode/
+.github/
 
 audio_cache/
 dectalk/
