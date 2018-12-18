@@ -43,9 +43,8 @@ from .constants import DISCORD_MSG_CHAR_LIMIT, AUDIO_CACHE_PATH
 
 
 load_opus_lib()
-
+client = discord.Client()
 log = logging.getLogger(__name__)
-
 class MusicBot(discord.Client):
     def __init__(self, config_file=None, perms_file=None):
         try:
@@ -897,7 +896,6 @@ class MusicBot(discord.Client):
 
         else:
             log.error("エラー {}".format(event), exc_info=True)
-
     async def on_resumed(self):
         log.info("\nDiscord へ再接続しました。\n")
     async def on_ready(self):
@@ -920,7 +918,6 @@ class MusicBot(discord.Client):
         self.init_ok = True
 
         ################################
-
         log.info("ボット アカウント: {0}/{1}#{2}".format(
             self.user.id,
             self.user.name,
