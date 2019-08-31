@@ -472,7 +472,7 @@ class MusicBot(discord.Client):
             author_perms = self.permissions.for_user(author)
 
             if author not in player.voice_client.channel.members and author_perms.skip_when_absent:
-                newmsg = 'Skipping next song in `%s`: `%s` added by `%s` as queuer not in voice' % (
+                newmsg = '`%s`で再生中の曲 `%s` を追加した `%s` が居ないためスキップします。' % (
                     player.voice_client.channel.name, entry.title, entry.meta['author'].name)
                 player.skip()
             elif self.config.now_playing_mentions:
@@ -588,7 +588,7 @@ class MusicBot(discord.Client):
                     continue
 
                 if info.get('entries', None):  # or .get('_type', '') == 'playlist'
-                    log.debug("Playlist found but is unsupported at this time, skipping.")
+                    log.debug("プレイリストは現在対応していません。")
                     # TODO: Playlist expansion
 
                 # Do I check the initial conditions again?
@@ -626,7 +626,7 @@ class MusicBot(discord.Client):
         if 'channel' in entry.meta:
             await self.safe_send_message(
                 entry.meta['channel'],
-                "```\nError from FFmpeg:\n{}\n```".format(ex)
+                "```\nFFmpeg でエラーが発生しました:\n{}\n```".format(ex)
             )
         else:
             log.exception("Player error", exc_info=ex)
@@ -638,7 +638,7 @@ class MusicBot(discord.Client):
             if self.user.bot:
                 activeplayers = sum(1 for p in self.players.values() if p.is_playing)
                 if activeplayers > 1:
-                    game = discord.Game(type=2, name="music on %s guilds" % activeplayers)
+                    game = discord.Game(type=2, name="%s 個のサーバーでお仕事中" % activeplayers)
                     entry = None
 
                 elif activeplayers == 1:
